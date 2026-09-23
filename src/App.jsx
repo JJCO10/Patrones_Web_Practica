@@ -1,4 +1,5 @@
-import OrdersApp from './OrdersApp.jsx'
+import OrdersView from './components/OrdersView.jsx'
+import usePedidosViewModel from './viewmodel/usePedidosViewModel.js'
 
 // EJERCICIO 3: cuando termines el refactor a MVVM, reemplaza el import
 // de arriba y el <OrdersApp /> de abajo por:
@@ -17,7 +18,7 @@ export default function App() {
           Actividad práctica · Patrones estructurales, Adapter y Facade
         </p>
       </header>
-      <OrdersApp />
+      <OrdersView {...usePedidosViewModel()} />
     </div>
   )
 }

@@ -22,6 +22,12 @@ export class AdapterPasarelaY {
 
   async procesar(monto) {
     // TODO(Ejercicio 1): implementar usando this.sdk.charge(...)
-    throw new Error('AdapterPasarelaY.procesar() no implementado todavía')
+    try {
+      const amountCents = Math.round(monto * 100) // Convertir a centavos
+      const resultado = await this.sdk.charge(amountCents)
+      return new Resultado(true, resultado.txId)
+    } catch (error) {
+      return new Resultado(false, null)
+    }
   }
 }

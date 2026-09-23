@@ -22,7 +22,75 @@
  * que hace que Vista y lógica queden desacopladas (a diferencia de
  * OrdersApp.jsx, donde estaban mezcladas).
  */
-export function usePedidosViewModel() {
-  // TODO(Ejercicio 3): mover aquí el estado y la lógica de OrdersApp.jsx
-  throw new Error('usePedidosViewModel() no implementado todavía')
+import { useState } from 'react'
+import { FachadaPedidos } from '../patterns/FachadaPedidos.js'
+import { AdapterPasarelaX } from '../services/pagos/AdapterPasarelaX.js'
+import { AdapterPasarelaY } from '../services/pagos/AdapterPasarelaY.js'
+
+export default function usePedidosViewModel() {
+  // --- LÓGICA (esto debería vivir en el ViewModel) ---
+  const [pedidos, setPedidos] = useState([])
+  const [cliente, setCliente] = useState('')
+  const [direccion, setDireccion] = useState('')
+  const [itemsText, setItemsText] = useState('')
+  const [total, setTotal] = useState('')
+  const [pasarela, setPasarela] = useState('X')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+    try {
+      const adapter = pasarela === 'X' ? new AdapterPasarelaX() : new AdapterPasarelaY()
+      const facade = new FachadaPedidos(adapter)
+      const pedido = {
+        cliente,
+        direccion,
+        items: itemsText.split(',').map((s) => s.trim()).filter(Boolean),
+        total: Number(total),
+      }
+      await facade.procesarPedido(pedido)
+      setPedidos((prev) => [
+        { ...pedido, pasarela, procesadoEn: new Date().toLocaleTimeString() },
+        ...prev,
+      ])
+      setCliente('')
+      setDireccion('')
+      setItemsText('')
+      setTotal('')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return {
+    pedidos,
+    loading,
+    error,
+    form: { cliente, direccion, itemsText, total, pasarela },
+    setField: (campo, valor) => {
+      switch (campo) {
+        case 'cliente':
+          setCliente(valor)
+          break
+        case 'direccion':
+          setDireccion(valor)
+          break
+        case 'itemsText':
+          setItemsText(valor)
+          break
+        case 'total':
+          setTotal(valor)
+          break
+        case 'pasarela':
+          setPasarela(valor)
+          break
+      }
+    },
+    enviarPedido: handleSubmit
+  }
 }
