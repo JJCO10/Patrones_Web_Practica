@@ -1,8 +1,8 @@
 import { inventario } from '../services/inventario.js'
 import { envios } from '../services/envios.js'
-import { notificaciones } from '../services/notificaciones.js'
-import { CircuitBreaker } from '../patterns/CircuitBreaker.js'
-import { retry } from '../patterns/retry.js'
+import { eventos, EVENTO_PEDIDO_CONFIRMADO } from './comunication/eventos.js'
+import { CircuitBreaker } from './resilience/CircuitBreaker.js'
+import { retry } from './resilience/retry.js'
 
 /**
  * EJERCICIO 2 — Facade
@@ -37,7 +37,7 @@ export class FachadaPedidos {
         throw new Error('El pago falló')
       }
       await envios.programar(pedido.direccion)
-      await notificaciones.confirmar(pedido.cliente)
+      eventos.dispatchEvent(new CustomEvent(EVENTO_PEDIDO_CONFIRMADO, { detail: { cliente: pedido.cliente } }))
     } catch (error) {
       if (error.message.includes('Circuito ABIERTO')) {
         throw new Error('Inventario no disponible. Inténtelo más tarde.')
